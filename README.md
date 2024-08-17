@@ -1,6 +1,6 @@
-# Paraphrase Bot
+# Paraphrase With AI
 
-Paraphrase Bot is a WordPress plugin that helps users paraphrase their posts using AI. This plugin integrates with a paraphrasing API to offer users a seamless experience for rewriting content.
+Paraphrase with AI is a WordPress plugin that helps users paraphrase their posts using AI. This plugin integrates with a paraphrasing API to offer users a seamless experience for rewriting content.
 
 ## Features
 - Paraphrase selected text directly in the WordPress editor.
