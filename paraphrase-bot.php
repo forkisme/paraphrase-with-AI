@@ -22,7 +22,8 @@ add_action('admin_enqueue_scripts', 'paraphrase_bot_enqueue_modal_script');
 function paraphrase_bot_enqueue_scripts() {
     wp_enqueue_script('paraphrase-bot-script', plugin_dir_url(__FILE__) . 'js/paraphrase-bot.js', array('jquery'), '0.1.4', true);
     wp_localize_script('paraphrase-bot-script', 'paraphraseBot', array(
-        'ajax_url' => admin_url('admin-ajax.php')
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('paraphrase_bot_nonce_action')
     ));
 }
 add_action('admin_enqueue_scripts', 'paraphrase_bot_enqueue_scripts');
@@ -33,18 +34,23 @@ function paraphrase_bot_add_editor_button() {
 add_action('media_buttons', 'paraphrase_bot_add_editor_button');
 
 function paraphrase_bot_ajax_handler() {
+    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'paraphrase_bot_nonce_action')) {
+        wp_send_json_error('Security check failed.');
+        return;
+    }
+
     if (isset($_POST['text'])) {
         $text = sanitize_text_field($_POST['text']);
         $word_count = str_word_count($text);
         $user_id = get_current_user_id();
-        
+
         if (!paraphrase_bot_can_paraphrase($user_id, $word_count)) {
             wp_send_json_error('Word limit exceeded for the day. Upgrade to premium for unlimited paraphrasing.');
             return;
         }
 
         $paraphrased_text = paraphrase_text($text);
-        
+
         if ($paraphrased_text) {
             // Update the word count for the user
             paraphrase_bot_update_word_count($user_id, $word_count);
@@ -85,7 +91,6 @@ function paraphrase_text($text) {
         return $response;
     }
 }
-
 
 // Check if the user can paraphrase based on their plan and word count
 function paraphrase_bot_can_paraphrase($user_id, $word_count) {
@@ -151,17 +156,23 @@ function paraphrase_bot_settings_page() {
     $upgrade_confirmed = false;
 
     // Check if the form is submitted
-    if (isset($_POST['confirm_email'])) {
-        $submitted_email = sanitize_email($_POST['confirm_email']);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Verify the nonce
+        if (isset($_POST['paraphrase_bot_confirm_email_nonce']) && wp_verify_nonce($_POST['paraphrase_bot_confirm_email_nonce'], 'paraphrase_bot_confirm_email_action')) {
+            $submitted_email = sanitize_email($_POST['confirm_email']);
 
-        // Check if this email exists in our webhook logs
-        if ($submitted_email && paraphrase_bot_check_email_in_logs($submitted_email)) {
-            // Update user meta to mark as premium
-            update_user_meta(get_current_user_id(), 'paraphrase_bot_premium', $submitted_email);
-            $user_email = $submitted_email;
-            $upgrade_confirmed = true;
+            // Check if this email exists in our webhook logs
+            if ($submitted_email && paraphrase_bot_check_email_in_logs($submitted_email)) {
+                // Update user meta to mark as premium
+                update_user_meta(get_current_user_id(), 'paraphrase_bot_premium', $submitted_email);
+                $user_email = $submitted_email;
+                $upgrade_confirmed = true;
+            } else {
+                $upgrade_confirmed = false;
+            }
         } else {
-            $upgrade_confirmed = false;
+            // Nonce verification failed
+            wp_die('Security check failed. Please try again.');
         }
     }
 
@@ -190,6 +201,7 @@ function paraphrase_bot_settings_page() {
                 <hr>
 
                 <form method="post">
+                    <?php wp_nonce_field('paraphrase_bot_confirm_email_action', 'paraphrase_bot_confirm_email_nonce'); ?>
                     <p style="font-size: 1.1em; line-height: 1.6; margin-top: 2em;"><strong>Confirm your email address if you've already paid:</strong></p>
                     <input type="email" name="confirm_email" required placeholder="Enter your email address" style="padding: 8px; width: 100%; max-width: 300px;">
                     <button type="submit" class="button button-secondary" style="margin-top: 10px;">Confirm Email</button>
