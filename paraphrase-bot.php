@@ -5,7 +5,6 @@ Plugin URI: paraphrase-bot.com
 Description: Paraphrase your text and get multiple paraphrased sentences per sentence using our API.
 Version: 0.1.4
 Author: Michael Mwanzia
-Author URI: paraphrase-bot.com
 License: GPLv2 or later
 Text Domain: paraphrase-bot
 */
