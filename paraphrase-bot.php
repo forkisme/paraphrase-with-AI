@@ -177,7 +177,7 @@ function paraphrase_bot_settings_page() {
         <div id="tab-plans" class="tab-content">
             <h2 style="font-size: 1.5em; color: #0073aa; margin-top: 1.5em;">Plans</h2>
             <p style="font-size: 1.1em; line-height: 1.6;">By default, users are on the free version, which allows users to paraphrase up to 1000 words a day. This resets each day.</p>
-            <p style="font-size: 1.1em; line-height: 1.6;">The premium plan allows users to use the plugin with unlimited usage and costs $5 per month.</p>
+            <p style="font-size: 1.1em; line-height: 1.6;">The premium plan allows users to use the plugin with unlimited usage and costs $25 per month.</p>
             
             <?php if ($user_email) : ?>
                 <p style="font-size: 1.1em; line-height: 1.6; margin-top: 2em;"><strong>You are already on premium mode. Your email: <?php echo esc_html($user_email); ?></strong></p>
