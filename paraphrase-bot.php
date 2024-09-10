@@ -1,9 +1,11 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /*
 Plugin Name:  Paraphrase with AI
-Plugin URI: paraphrase-bot.com
+Plugin URI: https://paraphrasebot.framer.ai/
 Description: Paraphrase your text and get multiple paraphrased sentences per sentence using our API.
-Version: 0.1.4
+Version: 1.0.0
 Author: Michael Mwanzia
 License: GPLv2 or later
 Text Domain: paraphrase-bot
@@ -64,30 +66,21 @@ add_action('wp_ajax_paraphrase_text', 'paraphrase_bot_ajax_handler');
 function paraphrase_text($text) {
     $proxy_url = 'https://paraphrase-ai.mick.co.ke/webhook/proxy.php'; 
 
-    $curl = curl_init();
-
-    curl_setopt_array($curl, [
-        CURLOPT_URL => $proxy_url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode([
-            'text' => $text,
+    $response = wp_remote_post($proxy_url, array(
+        'method'    => 'POST',
+        'body'      => json_encode(array(
+            'text'       => $text,
             'result_type' => 'single'
-        ]),
-        CURLOPT_HTTPHEADER => [
-            "Content-Type: application/json",
-        ],
-    ]);
+        )),
+        'headers'   => array(
+            'Content-Type' => 'application/json',
+        ),
+    ));
 
-    $response = curl_exec($curl);
-    $err = curl_error($curl);
-
-    curl_close($curl);
-
-    if ($err) {
-        return "cURL Error #:" . $err;
+    if (is_wp_error($response)) {
+        return 'Error: ' . $response->get_error_message();
     } else {
-        return $response;
+        return wp_remote_retrieve_body($response);
     }
 }
 
